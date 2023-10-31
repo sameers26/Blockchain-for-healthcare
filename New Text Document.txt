@@ -1,0 +1,44 @@
+// SPDX-License-Identifier: MIT
+pragma solidity ^0.8.0;
+
+contract MedicalRecords {
+    struct Record {
+        string patientName;
+        uint256 birthdate;
+        string diagnosis;
+        string treatment;
+    }
+
+    mapping(address => Record) public records;
+
+    event RecordAdded(address indexed patient, string patientName, uint256 birthdate, string diagnosis, string treatment);
+    event RecordDeleted(address indexed patient, string patientName);
+
+    function addRecord(
+        string memory _patientName,
+        uint256 _birthdate,
+        string memory _diagnosis,
+        string memory _treatment
+    ) public {
+        require(bytes(_patientName).length > 0, "Patient name cannot be empty");
+        require(_birthdate > 0, "Invalid birthdate");
+        require(bytes(_diagnosis).length > 0, "Diagnosis cannot be empty");
+        require(bytes(_treatment).length > 0, "Treatment cannot be empty");
+
+        records[msg.sender] = Record(_patientName, _birthdate, _diagnosis, _treatment);
+        emit RecordAdded(msg.sender, _patientName, _birthdate, _diagnosis, _treatment);
+    }
+
+    function viewRecord() public view returns (string memory patientName, uint256 birthdate, string memory diagnosis, string memory treatment) {
+        require(bytes(records[msg.sender].patientName).length > 0, "No record found for this patient");
+        Record memory record = records[msg.sender];
+        return (record.patientName, record.birthdate, record.diagnosis, record.treatment);
+    }
+
+    function deleteRecord() public {
+        require(bytes(records[msg.sender].patientName).length > 0, "No record found for this patient");
+        string memory patientName = records[msg.sender].patientName;
+        delete records[msg.sender];
+        emit RecordDeleted(msg.sender, patientName);
+    }
+}
